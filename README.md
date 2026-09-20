@@ -66,7 +66,7 @@ analystos/
 └── requirements.txt
 ```
 
-## Running it locally (no AWS needed yet)
+## Running it locally
 
 ```bash
 pip install -r requirements.txt
@@ -90,10 +90,33 @@ export AWS_SECRET_ACCESS_KEY=...
 python app.py
 ```
 
-If the Bedrock call fails for any reason, it automatically falls back
-to the mock explanation instead of crashing - a safety net for demo day.
+## AWS Integration
+
+AnalystOS uses Amazon Bedrock as the AI reasoning layer while keeping
+numerical analysis deterministic through Python and Pandas.
+
+The application separates AI reasoning from analytical computation:
+
+- Python/Pandas performs data-quality checks, pattern discovery,
+  investigation, verification, and simulation.
+- Amazon Bedrock provides natural-language reasoning and explanations.
+- AWS SAM provides the deployment configuration for AWS Lambda and
+  API Gateway.
+- The SAM template includes an S3 bucket for the cloud deployment
+  architecture.
+
+For local development, AnalystOS can run in mock mode without requiring
+AWS credentials. This allows the core analytical workflow to be tested
+locally while keeping the Bedrock integration available for deployment.
+
+If the Bedrock call fails, the application falls back to a mock
+explanation instead of crashing.
 
 ## Deploying (Ship It track)
+
+The project includes an AWS SAM template for deploying the application
+using AWS Lambda and API Gateway. The template also provisions an S3
+bucket as part of the cloud deployment architecture.
 
 ```bash
 sam build
@@ -152,4 +175,4 @@ uploads. Gives you a live URL to submit.
 uploaded the data, and it found the problem itself." Click "Load sample
 dataset," show the auto-discovered findings, click one to show
 contributing factors + verification + business impact, then run a
-what-if simulation. That's your 3-minute demo.
+what-if simulation. That's your 3-minute demo flow.
