@@ -1,0 +1,76 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: AnalystOS - autonomous AI data analyst
+
+Globals:
+  Function:
+    Timeout: 60
+    MemorySize: 1024
+    Runtime: python3.12
+    Environment:
+      Variables:
+        ANALYSTOS_MOCK: "false"
+
+Resources:
+  AnalystOSFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: lambda_handler.handler
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource: "*"
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+              Resource: !Sub "${UploadsBucket.Arn}/*"
+      Events:
+        Home:
+          Type: Api
+          Properties:
+            Path: /
+            Method: get
+        LoadSample:
+          Type: Api
+          Properties:
+            Path: /load-sample
+            Method: post
+        Upload:
+          Type: Api
+          Properties:
+            Path: /upload
+            Method: post
+        SimulateDiscount:
+          Type: Api
+          Properties:
+            Path: /simulate/discount
+            Method: post
+        SimulateLoss:
+          Type: Api
+          Properties:
+            Path: /simulate/customer-loss
+            Method: post
+        Ask:
+          Type: Api
+          Properties:
+            Path: /ask
+            Method: post
+        History:
+          Type: Api
+          Properties:
+            Path: /history
+            Method: get
+
+  UploadsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "analystos-uploads-${AWS::AccountId}"
+
+Outputs:
+  ApiUrl:
+    Description: "Base URL for the AnalystOS API"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"

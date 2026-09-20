@@ -1,0 +1,26 @@
+[
+  {
+    "timestamp": "2026-09-20T10:35:39.738551",
+    "dataset_name": "company_sales.csv (sample)",
+    "metric_total": 22853644.14,
+    "top_finding": "Revenue dropped 12.9% between the first and second half of the period"
+  },
+  {
+    "timestamp": "2026-09-20T16:22:02.990397",
+    "dataset_name": "company_sales.csv (sample)",
+    "metric_total": 22853644.14,
+    "top_finding": "Revenue dropped 12.9% between the first and second half of the period"
+  },
+  {
+    "timestamp": "2026-09-20T16:25:57.741428",
+    "dataset_name": "2026-08-22T14-23_export.csv",
+    "metric_total": 4146.0,
+    "top_finding": "Settlement date lags payment by 19 days (normal is <= 3) has 89.1% lower average Unnamed: 0 than other category segments"
+  },
+  {
+    "timestamp": "2026-09-20T16:26:09.048304",
+    "dataset_name": "company_sales.csv (sample)",
+    "metric_total": 22853644.14,
+    "top_finding": "Revenue dropped 12.9% between the first and second half of the period"
+  }
+]

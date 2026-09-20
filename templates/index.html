@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AnalystOS</title>
+<style>
+  * { box-sizing: border-box; font-family: -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; padding: 0; }
+  body { background: #0b0d12; color: #e6e8eb; padding: 24px; }
+  .container { max-width: 980px; margin: 0 auto; }
+
+  .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+  .header h1 { font-size: 22px; font-weight: 700; letter-spacing: 0.5px; }
+  .status { font-size: 12px; color: #4dff88; display: flex; align-items: center; gap: 6px; }
+  .status::before { content: "●"; }
+
+  .upload-zone {
+    border: 1px dashed #333; border-radius: 12px; padding: 24px; text-align: center;
+    background: #12151c; margin-bottom: 20px;
+  }
+  .upload-zone input[type=file] { margin-top: 10px; }
+  .btn {
+    background: #4f8cff; color: white; border: none; padding: 10px 20px; border-radius: 8px;
+    font-weight: 600; cursor: pointer; font-size: 14px; margin: 4px;
+  }
+  .btn:hover { background: #3d78e8; }
+  .btn.secondary { background: #23262f; }
+  .btn.secondary:hover { background: #2d3039; }
+  .btn:disabled { background: #333; cursor: not-allowed; }
+
+  .card { background: #12151c; border-radius: 12px; padding: 20px; margin-bottom: 16px; border: 1px solid #1e2129; }
+  .card h2 { font-size: 15px; margin-bottom: 14px; color: #9aa0a6; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .health-bar-bg { background: #1e2129; border-radius: 6px; height: 10px; overflow: hidden; margin: 8px 0; }
+  .health-bar-fill { background: linear-gradient(90deg, #4dff88, #4f8cff); height: 100%; transition: width 0.6s ease; }
+  .health-score { font-size: 28px; font-weight: 700; }
+  .health-issue { font-size: 13px; color: #c8ccd1; padding: 6px 0; border-bottom: 1px solid #1e2129; }
+  .health-issue:last-child { border-bottom: none; }
+  .sev-high { color: #ff5c5c; } .sev-warning { color: #ffb84d; } .sev-info { color: #7aa2ff; }
+
+  .finding {
+    background: #171a22; border-radius: 10px; padding: 16px; margin-bottom: 12px;
+    border-left: 3px solid #ff5c5c; cursor: pointer;
+  }
+  .finding:hover { background: #1c1f29; }
+  .finding-title { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+  .finding-meta { font-size: 12px; color: #6b7280; }
+
+  .detail-panel { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid #262a34; }
+  .detail-panel.open { display: block; }
+  .detail-section { margin-bottom: 14px; }
+  .detail-section h4 { font-size: 12px; color: #9aa0a6; text-transform: uppercase; margin-bottom: 6px; }
+  .factor-item { font-size: 13px; padding: 5px 0; color: #c8ccd1; }
+  .explanation-box { background: #0f1218; padding: 12px; border-radius: 8px; font-size: 13px; line-height: 1.5; margin-top: 6px; }
+  .verify-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+  .verify-badge.yes { background: #143a1c; color: #4dff88; }
+  .impact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+  .impact-stat { background: #0f1218; padding: 10px; border-radius: 8px; }
+  .impact-stat .label { font-size: 11px; color: #6b7280; }
+  .impact-stat .value { font-size: 16px; font-weight: 700; margin-top: 2px; }
+  .risk-HIGH { color: #ff5c5c; } .risk-MEDIUM { color: #ffb84d; } .risk-LOW { color: #4dff88; }
+  .next-q { font-size: 12px; color: #7aa2ff; padding: 4px 0; cursor: default; }
+
+  .sim-controls { display: flex; gap: 10px; align-items: center; margin-bottom: 14px; flex-wrap: wrap; }
+  .sim-controls input { background: #0f1218; border: 1px solid #262a34; color: white; padding: 8px 10px; border-radius: 6px; width: 100px; }
+  .sim-result { background: #0f1218; padding: 14px; border-radius: 8px; margin-top: 10px; display: none; }
+  .conf-HIGH { color: #4dff88; } .conf-MEDIUM { color: #ffb84d; } .conf-LOW { color: #ff5c5c; }
+
+  .memory-note { font-size: 13px; padding: 10px; background: #0f1218; border-radius: 8px; }
+
+  .empty-state { text-align: center; padding: 40px; color: #6b7280; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🧠 ANALYSTOS <span style="font-weight:400; color:#6b7280; font-size:14px;">— your autonomous AI data analyst</span></h1>
+    <div class="status">ACTIVE</div>
+  </div>
+
+  <div class="upload-zone">
+    <div>Upload a CSV to analyze, or try the sample dataset</div>
+    <input type="file" id="csvInput" accept=".csv">
+    <br>
+    <button class="btn" onclick="uploadFile()">Analyze this file</button>
+    <button class="btn secondary" onclick="loadSample()">Load sample dataset</button>
+  </div>
+
+  <div id="results" style="display:none;">
+
+    <div class="card">
+      <h2>Dataset</h2>
+      <div id="datasetInfo"></div>
+    </div>
+
+    <div class="card">
+      <h2>Data Health</h2>
+      <div class="health-score" id="healthScore">-</div>
+      <div class="health-bar-bg"><div class="health-bar-fill" id="healthBar" style="width:0%"></div></div>
+      <div id="healthIssues"></div>
+    </div>
+
+    <div class="card" id="memoryCard" style="display:none;">
+      <h2>Analyst Memory</h2>
+      <div class="memory-note" id="memoryNote"></div>
+    </div>
+
+    <div class="card">
+      <h2>🔎 AI Discovered</h2>
+      <div id="findingsList"></div>
+    </div>
+
+    <div class="card">
+      <h2>🔮 Simulate a Decision</h2>
+      <div class="sim-controls">
+        <span>Increase discount by</span>
+        <input type="number" id="discountPct" value="10">
+        <span>%</span>
+        <button class="btn" onclick="runDiscountSim()">Run Simulation</button>
+      </div>
+      <div class="sim-result" id="discountSimResult"></div>
+
+      <div class="sim-controls">
+        <span>Lose top</span>
+        <input type="number" id="customerN" value="100">
+        <span>customers by revenue</span>
+        <button class="btn" onclick="runCustomerSim()">Run Simulation</button>
+      </div>
+      <div class="sim-result" id="customerSimResult"></div>
+    </div>
+
+    <div class="card">
+      <h2>Ask a question</h2>
+      <div class="sim-controls">
+        <input type="text" id="questionInput" placeholder="e.g. Did the new CEO cause this?" style="width:400px;">
+        <button class="btn" onclick="askQuestion()">Ask</button>
+      </div>
+      <div class="sim-result" id="questionResult"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+let latestFindings = [];
+
+async function loadSample() {
+  const res = await fetch('/load-sample', { method: 'POST' });
+  const data = await res.json();
+  render(data);
+}
+
+async function uploadFile() {
+  const fileInput = document.getElementById('csvInput');
+  if (!fileInput.files.length) { alert('Choose a CSV file first, or click Load sample dataset.'); return; }
+  const formData = new FormData();
+  formData.append('file', fileInput.files[0]);
+  const res = await fetch('/upload', { method: 'POST', body: formData });
+  const data = await res.json();
+  if (data.error) { alert(data.error); return; }
+  render(data);
+}
+
+function render(data) {
+  document.getElementById('results').style.display = 'block';
+  latestFindings = data.findings;
+
+  document.getElementById('datasetInfo').innerHTML =
+    `${data.understanding.row_count.toLocaleString()} records &middot; ${data.understanding.column_count} columns &middot; primary metric: <b>${data.key_columns.primary_metric || 'none detected'}</b>`;
+
+  document.getElementById('healthScore').textContent = data.health.score + '/100';
+  document.getElementById('healthBar').style.width = data.health.score + '%';
+  document.getElementById('healthIssues').innerHTML = data.health.issues.map(i =>
+    `<div class="health-issue"><span class="sev-${i.severity}">⚠</span> ${i.detail}</div>`
+  ).join('') || '<div class="health-issue">No issues detected.</div>';
+
+  if (data.memory_comparison && data.memory_comparison.has_history) {
+    document.getElementById('memoryCard').style.display = 'block';
+    document.getElementById('memoryNote').textContent = data.memory_comparison.message;
+  }
+
+  const findingsHtml = data.findings.map((f, idx) => `
+    <div class="finding" onclick="toggleFinding(${idx})">
+      <div class="finding-title">⚠ ${f.title}</div>
+      <div class="finding-meta">Click to investigate</div>
+      <div class="detail-panel" id="detail-${idx}">
+        <div class="detail-section">
+          <h4>Contributing Factors</h4>
+          ${f.investigation.contributing_factors.map(cf => `<div class="factor-item">• ${cf.detail}</div>`).join('') || '<div class="factor-item">No strongly correlated factors found.</div>'}
+          <div class="explanation-box">${f.investigation.explanation}</div>
+          <div style="font-size:11px; color:#6b7280; margin-top:6px;">${f.investigation.disclaimer}</div>
+        </div>
+        <div class="detail-section">
+          <h4>Verification</h4>
+          <span class="verify-badge yes">✓ REPRODUCED FROM SOURCE DATA</span>
+          <div style="font-size:12px; color:#9aa0a6; margin-top:6px;">Coverage: ${f.verification.dataset_coverage}</div>
+        </div>
+        <div class="detail-section">
+          <h4>Business Impact</h4>
+          <div class="impact-grid">
+            <div class="impact-stat"><div class="label">Revenue Impact</div><div class="value">₹${(f.business_impact.revenue_impact || 0).toLocaleString()}</div></div>
+            <div class="impact-stat"><div class="label">Risk Level</div><div class="value risk-${f.business_impact.risk_level}">${f.business_impact.risk_level}</div></div>
+          </div>
+        </div>
+        <div class="detail-section">
+          <h4>Next Best Questions</h4>
+          ${f.next_questions.map(q => `<div class="next-q">→ ${q}</div>`).join('')}
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  document.getElementById('findingsList').innerHTML = findingsHtml || '<div class="empty-state">No significant patterns found in this dataset.</div>';
+}
+
+function toggleFinding(idx) {
+  const panel = document.getElementById('detail-' + idx);
+  panel.classList.toggle('open');
+}
+
+async function runDiscountSim() {
+  const pct = parseFloat(document.getElementById('discountPct').value);
+  const res = await fetch('/simulate/discount', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({change_pct: pct})
+  });
+  const data = await res.json();
+  const box = document.getElementById('discountSimResult');
+  box.style.display = 'block';
+  if (data.error) { box.innerHTML = data.error; return; }
+  box.innerHTML = `
+    <div><b>${data.scenario}</b></div>
+    <div style="margin-top:8px;">Estimated revenue change: <b style="font-size:18px;">${data.estimated_revenue_change_pct > 0 ? '+' : ''}${data.estimated_revenue_change_pct}%</b></div>
+    <div>Confidence: <span class="conf-${data.confidence}">${data.confidence}</span> (R² = ${data.r_squared})</div>
+    <div style="font-size:11px; color:#6b7280; margin-top:8px;">${data.disclaimer}</div>
+  `;
+}
+
+async function runCustomerSim() {
+  const n = parseInt(document.getElementById('customerN').value);
+  const res = await fetch('/simulate/customer-loss', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({top_n: n})
+  });
+  const data = await res.json();
+  const box = document.getElementById('customerSimResult');
+  box.style.display = 'block';
+  if (data.error) { box.innerHTML = data.error; return; }
+  box.innerHTML = `
+    <div><b>${data.scenario}</b></div>
+    <div style="margin-top:8px;">Revenue at risk: <b style="font-size:18px;">₹${data.at_risk_revenue.toLocaleString()}</b> (${data.impact_pct_of_total}% of total)</div>
+    <div>Confidence: <span class="conf-${data.confidence}">${data.confidence}</span></div>
+    <div style="font-size:11px; color:#6b7280; margin-top:8px;">${data.disclaimer}</div>
+  `;
+}
+
+async function askQuestion() {
+  const q = document.getElementById('questionInput').value;
+  if (!q.trim()) return;
+  const res = await fetch('/ask', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({question: q})
+  });
+  const data = await res.json();
+  const box = document.getElementById('questionResult');
+  box.style.display = 'block';
+  if (data.answerable === false) {
+    box.innerHTML = `<div style="color:#ffb84d; font-weight:700;">⚠ INSUFFICIENT EVIDENCE</div><div style="margin-top:6px;">${data.reason}</div><div style="font-size:11px; color:#6b7280; margin-top:6px;">Available columns: ${data.available_columns.join(', ')}</div>`;
+  } else {
+    box.innerHTML = data.message;
+  }
+}
+</script>
+</body>
+</html>

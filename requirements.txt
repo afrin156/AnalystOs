@@ -1,0 +1,5 @@
+flask==3.0.3
+pandas
+numpy
+boto3==1.34.144
+aws-wsgi==0.2.7
