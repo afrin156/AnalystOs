@@ -123,8 +123,7 @@ sam build
 sam deploy --guided
 ```
 
-This deploys behind Lambda + API Gateway and creates an S3 bucket for
-uploads. Gives you a live URL to submit.
+This deploys the application behind Lambda + API Gateway and provisions an S3 bucket as part of the cloud deployment architecture Gives you a live URL to submit.
 
 ## What's real right now, and what's honestly simplified
 
